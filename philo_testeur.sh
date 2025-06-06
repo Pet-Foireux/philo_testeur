@@ -150,11 +150,11 @@ run_valgrind_test() {
     print_color ""
 }
 
-run_test "1: 1 philosophe doit mourir" "1 800 200 200" "should_die" $TIMEOUT_NORMAL
-run_test "2: 5 philosophes boucle infinie" "5 800 200 200" "no_death" 8
-run_test "3: 5 philosophes 7 repas" "5 800 200 200 7" "no_death" $TIMEOUT_NORMAL
-run_test "4: 4 philosophes limite" "4 410 200 200" "no_death" 6
-run_test "5: 4 philosophes mort" "4 310 200 100" "should_die" $TIMEOUT_NORMAL
+run_test " 1: 1 philosophe doit mourir" "1 800 200 200" "should_die" $TIMEOUT_NORMAL
+run_test " 2: 5 philosophes boucle infinie" "5 800 200 200" "no_death" 8
+run_test " 3: 5 philosophes 7 repas" "5 800 200 200 7" "no_death" $TIMEOUT_NORMAL
+run_test " 4: 4 philosophes limite" "4 410 200 200" "no_death" 6
+run_test " 5: 4 philosophes mort" "4 310 200 100" "should_die" $TIMEOUT_NORMAL
 
 print_color "${YELLOW}🧪 TEST CRITIQUE: 2 philosophes timing${NC}"
 print_color "${CYAN}   Args: 2 800 200 200${NC}"
@@ -168,7 +168,7 @@ if [ ! -f /tmp/timing_test.log ]; then
     TESTS_FAILED=$((TESTS_FAILED + 1))
     FAILED_TESTS+=("Test timing: Erreur de création du log")
 else
-    death_count=$(grep -c "died" /tmp/timing_test.log 2>/dev/null || echo "0")
+    death_count=$(grep -c "died" /tmp/timing_test.log 2>/dev/null || echo "N/A")
     if [ "$death_count" -gt 0 ]; then
         death_time=$(grep "died" /tmp/timing_test.log | head -1 | cut -d' ' -f1 2>/dev/null || echo "N/A")
         last_eat=$(grep "is eating" /tmp/timing_test.log | tail -1 | cut -d' ' -f1 2>/dev/null || echo "N/A")
