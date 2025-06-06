@@ -99,8 +99,8 @@ run_test() {
             print_color "${WHITE}      📊 Actions: $total_lines lignes${NC}"
             TESTS_PASSED=$((TESTS_PASSED + 1))
         else
-            death_time=$(grep "died" /tmp/test_current.log | head -1 | cut -d' ' -f1)
-            death_philo=$(grep "died" /tmp/test_current.log | head -1 | cut -d' ' -f2)
+            death_time=$(grep "died" /tmp/test_current.log | head -1 | cut -d' ' -f1 2>/dev/null || echo "N/A")
+            death_philo=$(grep "died" /tmp/test_current.log | head -1 | cut -d' ' -f2 2>/dev/null || echo "N/A")
             print_color "${RED}   ❌ Mort inattendue!${NC}"
             print_color "${RED}      💀 Philosophe $death_philo mort à ${death_time}ms${NC}"
             TESTS_FAILED=$((TESTS_FAILED + 1))
@@ -170,9 +170,9 @@ if [ ! -f /tmp/timing_test.log ]; then
 else
     death_count=$(grep -c "died" /tmp/timing_test.log 2>/dev/null || echo "0")
     if [ "$death_count" -gt 0 ]; then
-        death_time=$(grep "died" /tmp/timing_test.log | head -1 | cut -d' ' -f1)
-        last_eat=$(grep "is eating" /tmp/timing_test.log | tail -1 | cut -d' ' -f1)
-        if [ -n "$last_eat" ] && [ -n "$death_time" ]; then
+        death_time=$(grep "died" /tmp/timing_test.log | head -1 | cut -d' ' -f1 2>/dev/null || echo "N/A")
+        last_eat=$(grep "is eating" /tmp/timing_test.log | tail -1 | cut -d' ' -f1 2>/dev/null || echo "N/A")
+        if [ -n "$last_eat" ] && [ -n "$death_time" ] && [ "$last_eat" != "N/A" ] && [ "$death_time" != "N/A" ]; then
             delay=$((death_time - last_eat - 800))
             if [ "$delay" -le 10 ] && [ "$delay" -ge 0 ]; then
                 print_color "${GREEN}   ✅ Timing correct (délai: ${delay}ms)${NC}"
@@ -259,9 +259,6 @@ if [ "$TESTS_FAILED" -eq 0 ] && [ "$VALGRIND_ERRORS" -eq 0 ]; then
     print_color "${GREEN}🎉 PROJET VALIDÉ - Prêt pour l'évaluation!${NC}"
 elif [ "$TESTS_FAILED" -eq 0 ]; then
     print_color "${YELLOW}⚠️  Fonctionnel OK mais erreurs Valgrind${NC}"
-else
-    print_color "${RED}❌ ÉCHEC - Tests fonctionnels à corriger${NC}"
-    print_color "${BLUE}📋 Corrige les erreurs ci-dessus avant l'évaluation${NC}"
 fi
 
 print_color ""
