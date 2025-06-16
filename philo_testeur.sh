@@ -283,21 +283,19 @@ run_valgrind_test() {
 
 run_timing_test() {
     print_color "${YELLOW}🧪 TEST CRITIQUE: 2 philosophes timing${NC}"
-    print_color "${CYAN}   Args: 2 800 200 200${NC}"
-    print_color "${CYAN}   Vérification délai de mort <10ms${NC}"
+    print_color "${CYAN}   Args: 2 800 400 400 ${NC}"
+    print_color "${CYAN}   Vérification: mort attendue <= 810ms${NC}"
     
     local attempt=1
     local max_attempts=3
     local valid_count=0
-    local total_delay=0
-    local delays=()
     
     while [ $attempt -le $max_attempts ]; do
         if [ $attempt -gt 1 ]; then
             print_color "${BLUE}   🔄 Tentative $attempt/${max_attempts}...${NC}"
         fi
         
-        timeout 8s $PHILO 2 800 200 200 > /tmp/timing_test_${attempt}.log 2>&1
+        timeout 8s $PHILO 2 800 400 400 > /tmp/timing_test_${attempt}.log 2>&1
         local exit_code=$?
         
         if [ ! -f /tmp/timing_test_${attempt}.log ]; then
@@ -312,29 +310,19 @@ run_timing_test() {
         
         if [ "$death_count" -gt 0 ]; then
             local death_time=$(grep "died" /tmp/timing_test_${attempt}.log | head -1 | cut -d' ' -f1 2>/dev/null || echo "N/A")
-            local last_eat=$(grep "is eating" /tmp/timing_test_${attempt}.log | tail -1 | cut -d' ' -f1 2>/dev/null || echo "N/A")
             
-            if [ -n "$last_eat" ] && [ -n "$death_time" ] && [ "$last_eat" != "N/A" ] && [ "$death_time" != "N/A" ]; then
-                local delay=$((death_time - last_eat - 800))
-                delays+=("$delay")
-                total_delay=$((total_delay + delay))
-                
-                if [ "$delay" -le 10 ] && [ "$delay" -ge 0 ]; then
-                    print_color "${GREEN}   ✅ Timing correct (délai: ${delay}ms)${NC}"
+            if [ -n "$death_time" ] && [ "$death_time" != "N/A" ]; then
+                if [ "$death_time" -le 810 ]; then
+                    print_color "${GREEN}   ✅ Mort au bon moment: ${death_time}ms (≤810ms) - tentative $attempt${NC}"
                     valid_count=$((valid_count + 1))
                 else
-                    print_color "${RED}   ❌ Délai incorrect: ${delay}ms (>10ms)${NC}"
+                    print_color "${RED}   ❌ Mort trop tardive: ${death_time}ms (>810ms) - tentative $attempt${NC}"
                 fi
             else
-                print_color "${YELLOW}   ⚠️  Pas de repas trouvé pour calculer délai (tentative $attempt)${NC}"
+                print_color "${RED}   ❌ Impossible de parser le temps de mort - tentative $attempt${NC}"
             fi
         else
-            if [ $exit_code -eq 124 ]; then
-                print_color "${GREEN}   ✅ Pas de mort (timeout atteint) - tentative $attempt${NC}"
-                valid_count=$((valid_count + 1))
-            else
-                print_color "${RED}   ❌ Comportement inattendu (tentative $attempt)${NC}"
-            fi
+            print_color "${RED}   ❌ Aucune mort détectée (mort attendue) - tentative $attempt${NC}"
         fi
         
         attempt=$((attempt + 1))
